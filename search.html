@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input type="text" placeholder="Rechercher...">
+    <button id="search">Rechercher</button>
+
+    
+    <h2>Résultats de recherche</h2>
+    <p id="results-count"></p>
+    
+    <div class="results">
+    </div>
+
+    <style>
+        .results{
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .results .result{
+            background: #999;
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        .result .infos{
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .result .infos .data{
+            display: flex;
+            flex-direction: column;
+        }
+
+        .result .infos .data *{
+            margin: 0;
+        }
+
+        .result .infos .data .website_link{
+            color: lightgray;
+        }
+
+        .result .infos img{
+            max-width: 50px;
+            width: 100%;
+        }
+    </style>
+    <script>
+        document.querySelector("#search").addEventListener("click", function(){
+            let search = document.querySelector("input").value;
+            let fetchEncoded = encodeURI(search);
+
+            var startDate = new Date();
+
+            fetch("/api/search/"+fetchEncoded).then(res => res.json()).then(data => {
+                console.log(data)
+                document.querySelector(".results").innerHTML = ""
+                data.forEach(element => {
+                    let div = document.createElement("div");
+                    div.className = "result"
+
+                    console.log(element)
+
+                    div.innerHTML = `
+                    <div class="infos">
+                        <img src="${element.meta_icon ? element.meta_icon : ""}" alt="">
+                        <div class="data">
+                            <p class="website_title">${element.meta_og_site_name ? element.meta_og_site_name : (element.meta_site_name ? element.meta_site_name : "")}</p>
+                            <p class="website_link">${element.url ? element.url : ""}</p>
+                        </div>
+                    
+                    </div>
+                    <a href=""><h2>${element.meta_og_title ? element.meta_og_title : (element.meta_title ? element.meta_title : element.tab_title)}</h2></a>
+                    <p>${element.meta_description ? element.meta_description : ""}</p>
+                    `
+                    
+                    document.querySelector(".results").appendChild(div);
+                });
+
+                var endDate = new Date();
+                var seconds = (endDate.getTime() - startDate.getTime()) / 1000;
+                document.getElementById("results-count").innerText = data.length + " résultats en " + seconds +"s"
+                
+            })
+        })
+    </script>
+</body>
+</html>
